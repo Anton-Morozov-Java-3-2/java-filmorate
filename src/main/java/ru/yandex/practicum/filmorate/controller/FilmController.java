@@ -12,7 +12,7 @@ import java.util.*;
 @RequestMapping("/films")
 @Slf4j
 public class FilmController {
-    HashMap<Long, Film> films = new HashMap<>();
+    private Map<Long, Film> films = new HashMap<>();
     private long counterId = 0;
 
     private long createId() {
@@ -20,12 +20,12 @@ public class FilmController {
     }
 
     @GetMapping
-    Collection<Film> getFilms(){
+    public Collection<Film> getFilms(){
         return  films.values();
     }
 
     @PostMapping
-    Film createFilm(@Valid @RequestBody Film film) {
+    public Film createFilm(@Valid @RequestBody Film film) {
         validateFilm(film, "create");
         long id = createId();
         film.setId(id);
@@ -35,7 +35,7 @@ public class FilmController {
     }
 
     @PutMapping
-    Film updateFilm(@Valid @RequestBody Film film) {
+    public Film updateFilm(@Valid @RequestBody Film film) {
         validateFilm(film, "update");
         long id = film.getId();
         if (films.containsKey(id)) {

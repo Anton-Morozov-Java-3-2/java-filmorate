@@ -9,12 +9,13 @@ import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/users")
 @Slf4j
 public class UserController {
-    HashMap<Long, User> users = new HashMap<>();
+    private Map<Long, User> users = new HashMap<>();
     private long counterId = 0;
 
     private long createId(){
@@ -22,12 +23,12 @@ public class UserController {
     }
 
     @GetMapping
-    Collection<User> getUsers(){
+    public Collection<User> getUsers(){
         return users.values();
     }
 
     @PostMapping
-    User createUser(@Valid @RequestBody User user) {
+    public User createUser(@Valid @RequestBody User user) {
         validateUser(user, "create");
         long id = createId();
         final String nameUser = getUserName(user);
@@ -39,7 +40,7 @@ public class UserController {
     }
 
     @PutMapping
-    User updateUser(@Valid @RequestBody User user) {
+    public User updateUser(@Valid @RequestBody User user) {
         validateUser(user, "update");
         long id = user.getId();
         if (users.containsKey(id)) {
