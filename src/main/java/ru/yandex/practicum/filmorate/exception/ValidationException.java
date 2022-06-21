@@ -1,7 +1,13 @@
 package ru.yandex.practicum.filmorate.exception;
 
 public class ValidationException extends RuntimeException{
-    public ValidationException(String message){
+    private final String parameter;
+    public ValidationException(String message, String parameter){
         super(message);
+        this.parameter = parameter;
+    }
+
+    public String getParameter() {
+        return parameter;
     }
 }

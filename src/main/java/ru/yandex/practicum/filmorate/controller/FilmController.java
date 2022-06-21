@@ -4,83 +4,66 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
 
 import javax.validation.Valid;
 import java.util.*;
 
 @RestController
-@RequestMapping("/films")
 @Slf4j
 public class FilmController {
-    private Map<Long, Film> films = new HashMap<>();
-    private long counterId = 0;
 
-    private long createId() {
-        return ++counterId;
+    private final FilmService filmService;
+
+    public FilmController(FilmService filmService) {
+        this.filmService = filmService;
     }
 
-    @GetMapping
-    public Collection<Film> getFilms(){
-        return  films.values();
-    }
-
-    @PostMapping
-    public Film createFilm(@Valid @RequestBody Film film) {
-        validateFilm(film, "create");
-        long id = createId();
-        film.setId(id);
-        films.put(id, film);
-        log.info("Add film: " + film);
+    @GetMapping("/films/{filmId}")
+    public Film getFilmById(@PathVariable("filmId") Long filmId) {
+        Film film = filmService.getFilmById(filmId);
+        log.info("Get film: " + film);
         return film;
     }
 
-    @PutMapping
+    @GetMapping("films/popular")
+    public List<Film> getPopularFilms(@RequestParam(defaultValue = "10", required = false) Integer count) {
+        List<Film> popularFilms = filmService.getPopularFilms(count);;
+        log.info("Get popular films: " + popularFilms);
+        return popularFilms;
+    }
+
+    @GetMapping("/films")
+    public Collection<Film> getFilms(){
+        Collection<Film> films = filmService.getAllFilms();
+        log.info("Get all films: " + films);
+        return films;
+    }
+
+    @PostMapping(value = "/films")
+    public Film createFilm(@Valid @RequestBody Film film) {
+        Film newFilm = filmService.createFilm(film);
+        log.info("Create film: " + newFilm);
+        return newFilm;
+    }
+
+    @PutMapping(value = "/films")
     public Film updateFilm(@Valid @RequestBody Film film) {
-        validateFilm(film, "update");
-        long id = film.getId();
-        if (films.containsKey(id)) {
-            Film old = films.get(id);
-            films.replace(id, film);
-            log.info("Update film: " + old + " to " + film);
-            return film;
-        }
-        final String massage = "Update request error film. " + film + " not contains!";
-        log.warn(massage);
-        throw new ValidationException(massage);
+        Film newFilm = filmService.updateFilm(film);
+        log.info("Update film to " + newFilm);
+        return filmService.updateFilm(newFilm);
     }
 
-    private static void validateFilm(Film film, String operation) {
-        try {
-            checkFilmData(film);
-        } catch (ValidationException e) {
-            String massage = "Error " + operation + ". Validation exception thrown: " + e.getMessage() +
-                    ". Film data: " +  film;
-            log.warn(massage);
-            throw e;
-        }
+    @PutMapping("/films/{id}/like/{userId}")
+    public void addLike(@PathVariable("id") Long id, @PathVariable("userId") Long userId) {
+        filmService.addLikeFilm(id, userId);
+        log.info(String.format("Film id=%d received a like from the user id=%d", id, userId));
     }
 
-    private static void checkFilmData(Film film) {
-        final int MAX_LENGTH = 200;
-
-        if (film == null) throw new ValidationException("Object film can't be null");
-
-        // check name
-        if (film.getName() == null) throw new ValidationException("Movie title can't be null");
-        if (film.getName().isBlank()) throw new ValidationException("Movie title can't be blank");
-
-        //check description
-        if (film.getDescription() == null) throw  new ValidationException("Movie description can't be null");
-        if (film.getDescription().length() > 200) throw new ValidationException("Movie description can't be " +
-                    "longer than " +
-                    "200 characters");
-
-        //check release data
-        if (film.getReleaseDate() == null) throw new ValidationException("Release day can't be null");
-        if (film.getReleaseDate().isBefore(Film.BIRTHDAY_CINEMA)) throw new ValidationException("The release date of " +
-                "the film can't be earlier than the birthday of the cinema");
-
-        //check duration
-        if (film.getDuration() < 0) throw new ValidationException("Duration film can't be negative");
+    @DeleteMapping("/films/{id}/like/{userId}")
+    public void deleteLike(@PathVariable("id") Long id, @PathVariable("userId") Long userId) {
+        filmService.deleteLikeFilm(id, userId);
+        log.info(String.format("User id=%d deleted the like of the film id=%s", userId, id));
     }
 }
