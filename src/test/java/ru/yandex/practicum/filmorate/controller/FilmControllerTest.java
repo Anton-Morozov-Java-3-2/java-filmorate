@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.controller;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
@@ -11,16 +12,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 
 public class FilmControllerTest {
     static FilmController filmController;
+    static UserService userService;
 
     @BeforeEach
     void initController() {
-        filmController = new FilmController();
+        userService = new UserService(new InMemoryUserStorage());
+        filmController = new FilmController(new FilmService(new InMemoryFilmStorage(), userService));
     }
 
     @Test
@@ -47,7 +56,7 @@ public class FilmControllerTest {
 
         assertEquals(film, createFilm);
 
-        Film matrix = new Film("The Matrix", "Test update",
+        Film matrix = new Film("The Matrix", "Test updateFilm",
                 LocalDate.of(1999,3, 24), 100);
         matrix.setId(createFilm.getId());
 
@@ -67,10 +76,10 @@ public class FilmControllerTest {
 
         assertEquals(film, createFilm);
 
-        Film matrix = new Film("The Matrix", "Test update",
+        Film matrix = new Film("The Matrix", "Test updateFilm",
                 LocalDate.of(1999,3, 24), 100);
         matrix.setId(100);
-        Exception exception = assertThrows(ValidationException.class, ()->filmController.updateFilm(matrix));
+        Exception exception = assertThrows(FilmNotFoundException.class, ()->filmController.updateFilm(matrix));
     }
 
     @Test
@@ -217,5 +226,38 @@ public class FilmControllerTest {
         Duration duration = Duration.ofMinutes(1);
         Film film = new Film("Film Test", "Test", releaseDay, 100);
         assertDoesNotThrow(()->filmController.createFilm(film));
+    }
+
+    @Test
+    void testPopularFilms(){
+        LocalDate releaseDay = LocalDate.of(1999, 12, 29);
+        Duration duration = Duration.ofMinutes(0);
+        Film film1 = new Film("Film1", "Test", releaseDay, 100);
+        film1 = filmController.createFilm(film1);
+        Film film2 = new Film("Film2", "Test", releaseDay, 100);
+        film2 = filmController.createFilm(film2);
+        Film film3 = new Film("Film3", "Test", releaseDay, 100);
+        film3 = filmController.createFilm(film3);
+        Film film4 = new Film("Film4", "Test", releaseDay, 100);
+        film4 = filmController.createFilm(film4);
+
+        LocalDate birthday =  LocalDate.of(1976, 8, 20);
+        User user1 = new User( 0,  "friend@mail.ru","friend1","friend adipisicing", birthday);
+        User user2 = new User( 0,  "friend@mail.ru","friend2","friend adipisicing", birthday);
+        User user3 = new User( 0,  "friend@mail.ru","friend3","friend adipisicing", birthday);
+        user1 = userService.createUser(user1);
+        user2 = userService.createUser(user2);
+        user3 = userService.createUser(user3);
+
+        filmController.addLike(film2.getId(), user1.getId());
+        filmController.addLike(film2.getId(), user2.getId());
+        filmController.addLike(film2.getId(), user3.getId());
+
+        filmController.addLike(film3.getId(), user1.getId());
+        filmController.addLike(film3.getId(), user2.getId());
+
+        List<Film> expected = List.of(film2, film3, film4, film1);
+        List<Film> popular = filmController.getPopularFilms(20);
+        assertArrayEquals(expected.toArray(), popular.toArray());
     }
 }

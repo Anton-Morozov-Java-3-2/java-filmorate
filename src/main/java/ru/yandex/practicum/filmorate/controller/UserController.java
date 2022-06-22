@@ -4,92 +4,75 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @RestController
-@RequestMapping("/users")
 @Slf4j
 public class UserController {
-    private Map<Long, User> users = new HashMap<>();
-    private long counterId = 0;
 
-    private long createId(){
-        return ++counterId;
+    private final UserService userService;
+
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
 
-    @GetMapping
-    public Collection<User> getUsers(){
-        return users.values();
-    }
-
-    @PostMapping
-    public User createUser(@Valid @RequestBody User user) {
-        validateUser(user, "create");
-        long id = createId();
-        final String nameUser = getUserName(user);
-        user.setId(id);
-        user.setName(nameUser);
-        users.put(id, user);
-        log.info("Add user: " + user);
+    @GetMapping("/users/{id}")
+    public User getUserById(@PathVariable("id") Long id) {
+        User user = userService.getUserById(id);
+        log.info("Get user: " + user);
         return user;
     }
 
-    @PutMapping
+    @GetMapping("/users/{id}/friends")
+    public List<User> getFriendsOfTheUser(@PathVariable("id") Long id){
+        List<User> friends = userService.getUserFriends(id);
+        log.info("Get friends of user with id=" + id + ", friends: " + friends);
+        return friends;
+    }
+
+    @GetMapping("/users/{id}/friends/common/{otherId}")
+    public List<User> getCommonFriendsOfTheUsers(@PathVariable("id") Long id,
+                                                 @PathVariable("otherId") Long otherId) {
+        List<User> commonFriends = userService.getCommonFriends(id, otherId);
+        log.info("Get common friends of user with id=" + id + " and other user with id=" + otherId +
+                ", common friends: " + commonFriends);
+        return commonFriends;
+    }
+
+    @GetMapping("/users")
+    public Collection<User> getUsers(){
+        Collection<User> users = userService.getAllUsers();
+        log.info("Get all users: " + users);
+        return users;
+    }
+
+    @PostMapping(value = "/users")
+    public User createUser(@Valid @RequestBody User user) {
+        User newUser = userService.createUser(user);
+        log.info("Create user: " + newUser);
+        return user;
+    }
+
+    @PutMapping(value = "/users")
     public User updateUser(@Valid @RequestBody User user) {
-        validateUser(user, "update");
-        long id = user.getId();
-        if (users.containsKey(id)) {
-            User old = users.get(id);
-            users.replace(id, user);
-            log.info("Update user info: " + old + " to " + user);
-            return user;
-        }
-        final String massage = "Update request error user. " + user + " not contains!";
-        log.warn(massage);
-        throw new ValidationException(massage);
+        User newUser = userService.updateUser(user);
+        log.info("Update user to " + newUser);
+        return newUser;
     }
 
-    private static void validateUser(User user, String operation){
-        try {
-            checkUserData(user);
-        } catch (ValidationException e) {
-            String massage = "Error " + operation + ". Validation exception thrown: " + e.getMessage() +
-                    ". User data: " +  user;
-            log.warn(massage);
-            throw e;
-        }
+    @PutMapping("/users/{id}/friends/{friendId}")
+    public void addFriend(@PathVariable("id") Long id, @PathVariable("friendId") Long friendId){
+        userService.addUserFriend(id, friendId);
+        log.info(String.format("User with id=%s has added the user with id=%s as a friend",id, friendId));
     }
 
-    private static void checkUserData(User user) {
-
-        if (user == null) throw new ValidationException("User can't be null");
-
-        // check email
-        if (user.getEmail() == null) throw new ValidationException("User email can't be null");
-        if (user.getEmail().isBlank()) throw new ValidationException("User email can't be blank");
-        if (!user.getEmail().contains("@")) throw new ValidationException("User email must contain the @ symbol");
-
-        //check login
-        if (user.getLogin() == null) throw new ValidationException("User login can't be null");
-        if (user.getLogin().isBlank()) throw new ValidationException("User login can't be blank");
-        if (user.getLogin().contains(" ")) throw new ValidationException("User login can't contain space");
-
-        // check birthday
-        if (user.getBirthday() == null) throw new ValidationException("User birthday can't be null");
-        if (user.getBirthday().isAfter(LocalDate.now())) throw new ValidationException("User birthday can't be " +
-                "future");
-    }
-
-    private static String getUserName(User user) {
-        if (user.getName() == null || user.getName().isBlank()) {
-            return user.getLogin();
-        } else {
-            return user.getName();
-        }
+    @DeleteMapping("/users/{id}/friends/{friendId}")
+    public void deleteFriend(@PathVariable("id") Long id, @PathVariable("friendId") Long friendId) {
+        userService.deleteUserFriend(id, friendId);
+        log.info(String.format("User with id=%s unfriended user with id=%s",id, friendId));
     }
 }
