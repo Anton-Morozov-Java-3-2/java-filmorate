@@ -85,9 +85,9 @@ public class InMemoryUserStorage implements UserStorage{
 
     private void validateUserExist(Long id){
         if (!users.containsKey(id)) {
-            String massage = String.format("User with id=%s not found", id);
-            log.warn(massage);
-            throw new UserNotFoundException(massage);
+            String message = String.format("User with id=%s not found", id);
+            log.warn(message);
+            throw new UserNotFoundException(message);
         }
     }
 }

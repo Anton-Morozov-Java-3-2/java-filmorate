@@ -28,7 +28,7 @@ public class InMemoryFilmStorage implements FilmStorage{
             }
         } else {
             FilmNotFoundException exception = new FilmNotFoundException(FilmNotFoundException.
-                    createMassage("Access error when adding like.",filmId));
+                    createMessage("Access error when adding like.",filmId));
             log.warn(exception.getMessage());
         }
     }
@@ -41,7 +41,7 @@ public class InMemoryFilmStorage implements FilmStorage{
             }
         } else {
             FilmNotFoundException exception = new FilmNotFoundException(FilmNotFoundException.
-                    createMassage("Access error when delete like.",filmId));
+                    createMessage("Access error when delete like.",filmId));
             log.warn(exception.getMessage());
         }
     }
@@ -71,7 +71,7 @@ public class InMemoryFilmStorage implements FilmStorage{
             return films.get(id);
         } else {
             FilmNotFoundException exception =
-                    new FilmNotFoundException(FilmNotFoundException.createMassage("Access error.",id));
+                    new FilmNotFoundException(FilmNotFoundException.createMessage("Access error.",id));
             log.warn(exception.getMessage());
             throw exception;
         }
@@ -89,7 +89,7 @@ public class InMemoryFilmStorage implements FilmStorage{
             films.replace(id, film);
         } else {
             FilmNotFoundException exception =
-                    new FilmNotFoundException(FilmNotFoundException.createMassage("Update error.", id));
+                    new FilmNotFoundException(FilmNotFoundException.createMessage("Update error.", id));
             log.warn(exception.getMessage());
             throw exception;
         }

@@ -82,9 +82,9 @@ public class UserService {
         try {
             checkUserData(user);
         } catch (ValidationException e) {
-            String massage = "Error " + operation + ". Validation exception thrown: " + e.getMessage() +
+            String message = "Error " + operation + ". Validation exception thrown: " + e.getMessage() +
                     ". User data: " +  user;
-            log.warn(massage);
+            log.warn(message);
             throw e;
         }
     }

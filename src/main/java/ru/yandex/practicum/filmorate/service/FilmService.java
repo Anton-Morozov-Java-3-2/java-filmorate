@@ -31,11 +31,9 @@ public class FilmService {
     public List<Film> getPopularFilms(Integer size) {
         Map<Long, Integer> rating = filmStorage.getRatingFilms();
         Set<Long> idFilms = filmStorage.getIdFilms();
-        return new ArrayList<>(idFilms)
-                .stream()
+        return idFilms.stream()
                 .sorted((idFilms1, idFilms2) -> compare(idFilms1,idFilms2, rating))
-                .limit(size)
-                .map(this::getFilmById)
+                .limit(size).map(this::getFilmById)
                 .collect(Collectors.toList());
     }
 
@@ -72,9 +70,9 @@ public class FilmService {
         if (userService.isExistUser(userId)) {
             filmStorage.addLikeFilm(filmId, userId);
         } else {
-            String massage = String.format("User with id=%s not found", userId);
-            log.warn(massage);
-            throw new UserNotFoundException(massage);
+            String message = String.format("User with id=%s not found", userId);
+            log.warn(message);
+            throw new UserNotFoundException(message);
         }
     }
 
@@ -82,9 +80,9 @@ public class FilmService {
         if (userService.isExistUser(userId)) {
             filmStorage.deleteLikeFilm(filmId, userId);
         } else {
-            String massage = String.format("User with id=%s not found", userId);
-            log.warn(massage);
-            throw new UserNotFoundException(massage);
+            String message = String.format("User with id=%s not found", userId);
+            log.warn(message);
+            throw new UserNotFoundException(message);
         }
     }
 
@@ -92,9 +90,9 @@ public class FilmService {
         try {
             checkFilmData(film);
         } catch (ValidationException e) {
-            String massage = "Error " + operation + ". Validation exception thrown: " + e.getMessage() +
+            String message = "Error " + operation + ". Validation exception thrown: " + e.getMessage() +
                     ". Film data: " +  film;
-            log.warn(massage);
+            log.warn(message);
             throw e;
         }
     }
