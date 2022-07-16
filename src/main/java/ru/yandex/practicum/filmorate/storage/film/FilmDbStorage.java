@@ -88,9 +88,8 @@ public class FilmDbStorage implements FilmStorage{
                     );
 
         validateExistsFilm(film.getId());
-        for (Genre g: film.getGenres()) {
-            genreDbStorage.addFilmGenre(film.getId(), g.getId());
-        }
+        film.getGenres().forEach((g) -> genreDbStorage.addFilmGenre(film.getId(), g.getId()));
+
         return getFilmById(film.getId());
     }
 
@@ -113,13 +112,8 @@ public class FilmDbStorage implements FilmStorage{
         List<Genre> old_genre = genreDbStorage.getGenresByFilmId(film.getId());
         List<Genre> new_genre = film.getGenres();
 
-        for (Genre g: old_genre) {
-            genreDbStorage.deleteFilmGenre(film.getId(), g.getId());
-        }
-
-        for (Genre g: new_genre) {
-            genreDbStorage.addFilmGenre(film.getId(), g.getId());
-        }
+        old_genre.forEach((g)-> genreDbStorage.deleteFilmGenre(film.getId(), g.getId()));
+        new_genre.forEach((g)->genreDbStorage.addFilmGenre(film.getId(), g.getId()));
         return getFilmById(film.getId());
     }
 

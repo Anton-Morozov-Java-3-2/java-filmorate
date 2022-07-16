@@ -93,9 +93,12 @@ public class UserDbStorage implements UserStorage{
 
     @Override
     public boolean isUserExist(Long id) {
-        String sql = "SELECT * FROM \"user\" WHERE user_id = ?;";
+        String sql = "SELECT COUNT(*) FROM \"user\" WHERE user_id = ?;";
         SqlRowSet userRows = jdbcTemplate.queryForRowSet(sql, id);
-        return userRows.next();
+        if (userRows.next())
+            return userRows.getInt("COUNT(*)") > 0;
+        else
+            return false;
     }
 
     private void validateUserExist(Long id){
