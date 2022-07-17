@@ -1,11 +1,12 @@
 package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
 import java.util.*;
@@ -14,11 +15,11 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class FilmService {
+
     private final FilmStorage filmStorage;
     private final UserService userService;
     private long counterId = 0;
 
-    @Autowired
     public FilmService(FilmStorage filmStorage, UserService userService) {
         this.filmStorage = filmStorage;
         this.userService = userService;
@@ -56,14 +57,12 @@ public class FilmService {
         validateFilm(film, "create");
         long id = createId();
         film.setId(id);
-        filmStorage.addFilm(film);
-        return film;
+        return filmStorage.addFilm(film);
     }
 
     public Film updateFilm(Film film) {
         validateFilm(film, "update");
-        filmStorage.updateFilm(film);
-        return film;
+        return filmStorage.updateFilm(film);
     }
 
     public void addLikeFilm(Long filmId, Long userId) {
@@ -84,6 +83,22 @@ public class FilmService {
             log.warn(message);
             throw new UserNotFoundException(message);
         }
+    }
+
+    public List<Genre> getAllGenres() {
+        return filmStorage.getAllGenre();
+    }
+
+    public Genre getGenreById(int id) {
+        return filmStorage.getGenreById(id);
+    }
+
+    public List<Mpa> getAllMpa(){
+        return filmStorage.getAllMpa();
+    }
+
+    public Mpa getMpaById(int id) {
+        return filmStorage.getMpaById(id);
     }
 
     private static void validateFilm(Film film, String operation) {
